@@ -1,0 +1,218 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+ <script src="http://code.jquery.com/jquery-2.0.3.js"></script>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+	printYearButtons();
+	showYear("2020");
+	$('.yearButton').click(function(){
+		showYear($(this).attr("value"));
+	});
+	
+});
+
+var historyArray = new Array();
+// year, and offset
+historyArray["2020"] = 2;
+historyArray["2019"] = 5;
+historyArray["2018"] = 3;
+historyArray["2017"] = 1;
+historyArray["2016"] = 8;
+historyArray["2015"] = 7;
+historyArray["2014"] = 4;
+historyArray["2013"] = 6;
+historyArray["2012"] = 2;
+historyArray["2011"] = 7;
+historyArray["2010"] = 5;
+historyArray["2009"] = 1;
+historyArray["2008"] = 3;
+historyArray["2007"] = 4; // jen bh
+historyArray["2006"] = 6;
+
+function printYearButtons(){
+	var htmlString = "";
+	for (var year in historyArray) {	 
+		htmlString += "<input type=submit class='yearButton' value="+year+">";
+	}
+	$('#selectYear').append(htmlString);
+}
+
+var colors= new Array("#A0E8DB","#EA4B74","#E1FA72", "#CBA3FE","#7872FA","#BFA829","#FEAFAF","#94D8DA","#D494DA","#E97EE4");
+var master_sibs = new Array("David","Anna","Kevin", "Sally","Mark","Amy","Jen B H","Birk","Damien","Jen C B");
+var sibs = new Array("David","Anna","Kevin", "Sally","Mark","Amy","Jen B H","Birk","Damien","Jen C B");
+	
+	
+function showYear(year){
+	/* represent those that participated in the wheel, year by year */
+	verifySibsWithYear(year);
+	buildWheel(year);
+}
+
+function buildWheel(year){
+	console.log("in buildWheel the year: " + year);
+	$('#currYear').text(year);
+	var offset = historyArray[year];
+	var giverPercent = 1;
+	var getterPercent = 1;
+	var interval = 360/sibs.length;
+	console.log("the interval: " + interval + " the size: " + sibs.length);
+
+  $("#chart1").empty();
+  $("#chart1").append('<div id=chart2></div>');
+
+
+	for( i=0; i < sibs.length; i++){	
+			/* dynamically build the wheel */
+			
+			var index = offset + i;
+			if(index > (sibs.length-1)){
+				index = index - (sibs.length);
+			}	
+			var color = colors[i];
+			giverElem = "#giver" + i;
+			getterElem = "#getter" + index;
+			getterElemCircle = getterElem + " .circle";	
+					
+			$("#chart1").prepend("<div id='giver" + i + "' class='hold'><div class='pie' style='background-color:" + color + ";'><div class='label' giverNume=" + i + ">" + sibs[i] + "</div></div>");
+	
+			$("#chart2").append("<div id='getter" + index + "' class='mask'><div class='circle'><div class='innerlabel' id='LabelId" + index + "'></div></div>");
+			
+			giverPercent = interval * i;
+			$(giverElem).css('-moz-transform', 'rotate('+ giverPercent + 'deg)');
+			$(giverElem).css('-webkit-transform', 'rotate(' + giverPercent + 'deg)');
+			
+			$(getterElem).css('-moz-transform', 'rotate('+ giverPercent + 'deg)');
+			$(getterElem).css('-webkit-transform', 'rotate(' + giverPercent + 'deg)');
+		}
+		
+		for( var j=0;j < sibs.length; j++){
+			 /* once all getters are drawn, update with new giver id from offset */
+			var index = offset + j;
+			if(index > (sibs.length-1)){
+			  index = index - (sibs.length);
+			}
+			var color = colors[index];
+			var name = sibs[index];
+				
+			// problematic offsets & avoiding spouses
+			if((offset == 8) || (offset == 1) || (offset == 3)){
+  			  var new_index = index;
+  				if(offset == 8){
+					if((index == 2) || (index == 5) || (index == 8)){
+ 		 			    new_index += 3;
+  					}
+  				}
+	  			if(offset == 1){
+					if((index == 0) || (index == 3) || (index == 6)){
+  				    	new_index += 3;
+  					}
+  				}
+  				if(offset == 3){
+  				  	if((index == 6)) {
+  				    	new_index += 1;
+  				  	} else if (index == 7) {
+  				    	new_index -= 1;
+  				  	}
+  				}
+  				if(offset == 4) {
+  				}
+   		        if(new_index > (sibs.length-1)){
+		    		new_index = new_index - (sibs.length);
+				}
+				color = colors[new_index];
+  			   name = sibs[new_index];
+  			}
+
+			getterElem = "#getter" + index;
+			getterElemCircle = getterElem + " .circle";	
+				$("#LabelId"+index).text(name );
+				$(getterElemCircle).css('border',"1px solid #000");
+				$(getterElemCircle).css('background-color',color);
+		}
+}
+
+function verifySibsWithYear(year){
+	console.log("Master Sibs before verify: " + master_sibs.join() );
+	// reset sibs to master sib
+	sibs = master_sibs
+
+	// can update with other relationships - Hilary, Jen C B, Reid etc.
+	checkSibling("Kevin",2,"purple",year);
+	checkSibling("Jen C B", 9, "orange", year);
+}
+
+function checkSibling(sibling,position, color,year){
+ 
+  var present = jQuery.inArray(sibling, sibs);
+  var shouldAdd = siblingShouldBeInWheel(sibling, year)
+  console.log("shouldAdd: " + shouldAdd);
+	  if(shouldAdd){
+	  	console.log("should add");
+	  	if(present == -1){
+				console.log(sibling + " is missing, should add");
+				sibs.splice(position,0,sibling);
+				colors.splice(position,0,color);
+		  } else {
+ 				console.log(sibling + " is present, do nothing.");
+		  }
+	  } else {
+	  	console.log("should not add");
+	  	if(present > -1){
+	  		console.log("is present, should remove");
+	  		var index = sibs.indexOf(sibling);
+	  		sibs.splice(index,1);
+	  		//sibs.splice(position, 1);
+	  		var index_0 = colors.indexOf(color);
+	  		colors.splice(index_0,1);
+	 	  	//colors.splice(position,1);
+	 	  	//colors.remove(color);
+	  	} else {
+	  	 	console.log(sibling + " is already missing, do nothing.");
+			}
+	  }
+		console.log("sibs after: " + sibs.join());
+}
+
+function siblingShouldBeInWheel(sibling, year){
+ console.log("year: " + year + " sibling: " + sibling);
+  var returnValue = true;
+  parseInt(year, 10);
+  if(sibling == "Kevin" && (year <= 2012 || year >= 2015)){
+    returnValue = false;
+	}
+	if(sibling == "Jen C B" && year < 2010){
+	  returnValue = false;
+	}
+	console.log("checkSiblingWasInWheel, " + sibling + " in " + year + " value is : " + returnValue);
+	return returnValue;
+}
+</script>
+<head>
+
+<link rel="stylesheet" href="santawheel.css">
+
+
+</head>
+<body>
+<h2>Santa Wheel!</h2>
+<div id="selectYear" /></div>
+<p style="float:right;width:300px; text-align:right;border:black 1px dashed;padding:10px;">
+  Select a year to see who was paired with who. The outer ring are "givers" the inner ring, "recipients". 
+</p>
+
+<div>
+ <p style="float:right;width:100px; text-align:right;margin-right:30px;border:black 1px dashed;padding:20px;"><a href="cousin_wheel.html">Cousin Wheel!</a></p>
+ </div>
+<div id="chart1">	
+	<div id="chart2">
+	</div>
+</div>
+<div id="currYear"></div>
+<div style="position:absolute;top:500px;size:10px;">
+info re: pinwheel, email <a href="mailto:banane@gmail.com">me</a>
+</div>
+</html>
+
+
